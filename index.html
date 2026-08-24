@@ -166,8 +166,19 @@
           <p class="text-sm text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">請在上方輸入框輸入單字，我們將會為您抓取發音、英文釋義及繁體中文翻譯。</p>
         </div>
 
+        <!-- Spell Suggestions Box -->
+        <div id="searchSuggestionsBox" class="hidden bg-slate-50 dark:bg-zinc-950/40 p-6 rounded-2xl border border-slate-200 dark:border-zinc-900 space-y-4">
+          <div class="flex items-center gap-2.5 text-amber-600 dark:text-amber-500 font-bold">
+            <i class="fa-solid fa-lightbulb"></i>
+            <span class="text-sm">查無此單字。您是不是要找以下拼寫：</span>
+          </div>
+          <div id="suggestionsList" class="flex flex-wrap gap-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
         <!-- Search Result Box -->
-        <div id="searchResult" class="hidden bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-6">
+        <div id="searchResult" class="hidden bg-slate-50 dark:bg-zinc-950/40 p-6 rounded-2xl border border-slate-200 dark:border-zinc-900 space-y-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <!-- Word title & Phonetic -->
             <div>
@@ -788,6 +799,7 @@
       // Reset placeholders
       document.getElementById('searchPlaceholder').classList.add('hidden');
       document.getElementById('searchResult').classList.add('hidden');
+      document.getElementById('searchSuggestionsBox').classList.add('hidden');
       document.getElementById('searchLoading').classList.remove('hidden');
 
       currentSearchWordData = {
@@ -803,12 +815,15 @@
         audio: ''
       };
 
+      let dictionaryApiSuccess = false;
+
       try {
         // Fetch definition, phonetic, audio from Dictionary API
         const dictUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${input}`;
         const dictRes = await fetch(dictUrl);
         
         if (dictRes.ok) {
+          dictionaryApiSuccess = true;
           const dictData = await dictRes.json();
           const entry = dictData[0];
           
@@ -834,6 +849,32 @@
         }
       } catch (err) {
         console.warn("Failed fetching from Dictionary API", err);
+      }
+
+      if (!dictionaryApiSuccess) {
+        // 搜尋失敗，嘗試呼叫 Datamuse API 進行拼寫推敲
+        let hasSuggestions = false;
+        try {
+          const suggestRes = await fetch(`https://api.datamuse.com/words?sp=${encodeURIComponent(input)}&max=5`);
+          if (suggestRes.ok) {
+            const suggestions = await suggestRes.json();
+            if (suggestions && suggestions.length > 0) {
+              hasSuggestions = true;
+              displaySuggestions(suggestions);
+              return; // 中止後續處理，轉由建議字引導使用者
+            }
+          }
+        } catch (err) {
+          console.error("Failed fetching spell check suggestions:", err);
+        }
+
+        if (!hasSuggestions) {
+          // 連建議字都沒有，顯示傳統的找不到提示
+          document.getElementById('searchLoading').classList.add('hidden');
+          document.getElementById('searchPlaceholder').classList.remove('hidden');
+          alert(`「${input}」查無此單字，且無法推敲相似拼寫，請檢查拼字後重試！`);
+          return;
+        }
       }
 
       // Fetch Translation from MyMemory Translation API
@@ -884,6 +925,34 @@
       if (currentAudioUrl || (currentSearchWordData && currentSearchWordData.word)) {
         playAudio(currentAudioUrl, currentSearchWordData?.word);
       }
+    }
+
+    function displaySuggestions(suggestions) {
+      document.getElementById('searchLoading').classList.add('hidden');
+      document.getElementById('searchPlaceholder').classList.add('hidden');
+      document.getElementById('searchResult').classList.add('hidden');
+      
+      const box = document.getElementById('searchSuggestionsBox');
+      const list = document.getElementById('suggestionsList');
+      list.innerHTML = '';
+      
+      suggestions.forEach(item => {
+        const btn = document.createElement('button');
+        btn.onclick = () => searchSuggestedWord(item.word);
+        btn.className = "px-4 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-brand-500 dark:hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400 rounded-xl font-semibold text-sm transition text-slate-800 dark:text-slate-200";
+        btn.innerText = item.word;
+        list.appendChild(btn);
+      });
+      
+      box.classList.remove('hidden');
+    }
+
+    function searchSuggestedWord(word) {
+      document.getElementById('searchInput').value = word;
+      document.getElementById('searchSuggestionsBox').classList.add('hidden');
+      
+      const mockEvent = { preventDefault: () => {} };
+      handleSearch(mockEvent);
     }
 
     // Save filled form word into wordsDb
