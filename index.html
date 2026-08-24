@@ -416,18 +416,59 @@
           </div>
 
           <!-- Question Box -->
-          <div class="bg-slate-50 dark:bg-slate-900/50 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 text-center space-y-4">
-            <span id="quizQuestionPOS" class="text-xs bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold px-2.5 py-0.5 rounded font-mono uppercase">noun</span>
-            <h3 id="quizQuestionWord" class="text-3xl font-extrabold text-slate-950 dark:text-white tracking-wide">negotiate</h3>
-            <p id="quizQuestionPhonetic" class="text-sm font-mono text-slate-400">/nɪˈɡəʊʃɪeɪt/</p>
-            <button onclick="playQuizAudio()" class="mx-auto text-slate-400 hover:text-brand-500 transition w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm" title="發音">
-              <i class="fa-solid fa-volume-high text-xs"></i>
-            </button>
+          <div class="bg-slate-50 dark:bg-slate-900/50 p-6 md:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 text-center space-y-4">
+            <div class="flex items-center justify-center gap-2">
+              <span id="quizQuestionPOS" class="text-xs bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold px-2.5 py-0.5 rounded font-mono uppercase">noun</span>
+              <span id="quizQuestionType" class="text-xs bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 font-bold px-2.5 py-0.5 rounded">多益填空題</span>
+            </div>
+            
+            <h3 id="quizQuestionWord" class="text-xl md:text-2xl font-extrabold text-slate-950 dark:text-white tracking-wide leading-relaxed px-2">We need to _____ a new contract.</h3>
+            
+            <p id="quizQuestionPhonetic" class="text-sm font-mono text-slate-400 hidden">/nɪˈɡəʊʃɪeɪt/</p>
+            
+            <div class="flex justify-center gap-3">
+              <button onclick="playQuizAudio()" class="text-slate-500 hover:text-brand-500 transition w-9 h-9 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-700" title="聆聽發音">
+                <i class="fa-solid fa-volume-high text-sm"></i>
+              </button>
+              <button id="quizHintBtn" onclick="toggleQuizHint()" class="text-slate-500 hover:text-brand-500 transition px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-700 text-xs font-semibold">
+                <i class="fa-solid fa-eye mr-1"></i> 顯示中文提示
+              </button>
+            </div>
+            
+            <div id="quizChineseHint" class="hidden text-sm bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-300 p-2.5 rounded-lg border border-yellow-100 dark:border-yellow-900/30">
+              提示：翻譯為「協商、談判」
+            </div>
           </div>
 
           <!-- Options Grid -->
           <div class="grid grid-cols-1 gap-3" id="quizOptionsGrid">
             <!-- Dynamically Populated 4 buttons -->
+          </div>
+
+          <!-- Explanation Panel (Initially Hidden) -->
+          <div id="quizExplanationPanel" class="hidden bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 text-left">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-graduation-cap text-brand-500"></i> 考題解析
+            </h4>
+            <div class="space-y-2">
+              <p class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>正確答案：</span>
+                <span id="quizExplanationAnswer" class="text-green-600 dark:text-green-400 font-extrabold text-lg">negotiate</span>
+                <span id="quizExplanationPOS" class="text-xs bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold px-2.5 py-0.5 rounded font-mono uppercase">verb</span>
+              </p>
+              <div>
+                <span class="text-xs text-brand-600 dark:text-brand-400 font-semibold block">中文意思</span>
+                <p id="quizExplanationTranslation" class="text-sm text-slate-800 dark:text-slate-200 font-medium">談判、協商</p>
+              </div>
+              <div>
+                <span class="text-xs text-brand-600 dark:text-brand-400 font-semibold block">完整例句</span>
+                <p id="quizExplanationSentence" class="text-sm text-slate-800 dark:text-slate-200 italic leading-relaxed">"We need to **negotiate** a new contract."</p>
+              </div>
+              <div id="quizExplanationNotesBox">
+                <span class="text-xs text-purple-600 dark:text-purple-400 font-semibold block">學習筆記</span>
+                <p id="quizExplanationNotes" class="text-sm text-slate-600 dark:text-slate-400 bg-purple-50 dark:bg-purple-950/20 p-2.5 rounded border border-purple-100 dark:border-purple-900/30 mt-1">商務多益高頻字...</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -700,10 +741,41 @@
     }
 
     // Audio Playback helper
-    function playAudio(url) {
-      if (!url) return;
-      const audio = new Audio(url);
-      audio.play().catch(e => console.error("Audio playback blocked/failed:", e));
+    function playAudio(url, wordText) {
+      if (!url && !wordText) return;
+
+      // 修正本地 file:/// 協議下 // 開頭的相對路徑問題
+      if (url && url.startsWith('//')) {
+        url = 'https:' + url;
+      }
+
+      if (url) {
+        const audio = new Audio(url);
+        audio.play().catch(e => {
+          console.warn("Audio file playback failed, falling back to TTS:", e);
+          if (wordText) speakText(wordText);
+        });
+      } else if (wordText) {
+        speakText(wordText);
+      }
+    }
+
+    // TTS Web Speech API fallback
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // 停止目前播放
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        
+        const voices = window.speechSynthesis.getVoices();
+        const usVoice = voices.find(v => v.lang === 'en-US' || v.lang.startsWith('en'));
+        if (usVoice) {
+          utterance.voice = usVoice;
+        }
+        window.speechSynthesis.speak(utterance);
+      } else {
+        console.warn("SpeechSynthesis not supported.");
+      }
     }
 
     // --- Tab 1: Single Word API Search ---
@@ -808,8 +880,8 @@
     }
 
     function playCurrentAudio() {
-      if (currentAudioUrl) {
-        playAudio(currentAudioUrl);
+      if (currentAudioUrl || (currentSearchWordData && currentSearchWordData.word)) {
+        playAudio(currentAudioUrl, currentSearchWordData?.word);
       }
     }
 
@@ -902,11 +974,9 @@
 
           <!-- Buttons -->
           <div class="flex items-start md:items-center justify-end gap-2 shrink-0">
-            ${w.audio ? `
-              <button onclick="playAudio('${w.audio}')" class="p-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 hover:text-brand-500 transition" title="發音">
-                <i class="fa-solid fa-volume-high"></i>
-              </button>
-            ` : ''}
+            <button onclick="playAudio('${w.audio || ''}', '${w.word.replace(/'/g, "\\'")}')" class="p-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 hover:text-brand-500 transition" title="發音">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
             <button onclick="deleteWord('${w.id}')" class="p-2 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/20 border border-slate-200 dark:border-slate-700 hover:border-red-300 rounded-lg text-slate-400 hover:text-red-500 transition" title="刪除單字">
               <i class="fa-solid fa-trash-can"></i>
             </button>
@@ -957,12 +1027,8 @@
       document.getElementById('cardWord').innerText = word.word;
       document.getElementById('cardPhonetic').innerText = word.phonetic || '/無音標/';
 
-      // Hide or show front card audio
-      if (word.audio) {
-        document.getElementById('cardPhoneticPlay').classList.remove('hidden');
-      } else {
-        document.getElementById('cardPhoneticPlay').classList.add('hidden');
-      }
+      // Always show front card audio, since we fallback to TTS
+      document.getElementById('cardPhoneticPlay').classList.remove('hidden');
 
       // Update Back Card
       document.getElementById('cardBackWord').innerText = word.word;
@@ -998,10 +1064,11 @@
       document.getElementById('flashcardInner').classList.toggle('flipped');
     }
 
+    // Play card audio
     function playCardAudio() {
       const word = shuffledCardsArray[cardIndex];
-      if (word && word.audio) {
-        playAudio(word.audio);
+      if (word) {
+        playAudio(word.audio, word.word);
       }
     }
 
@@ -1073,9 +1140,16 @@
       loadQuizQuestion();
     }
 
+    let quizIsSentenceMode = false;
+
     function loadQuizQuestion() {
       quizSelectedAnswer = false;
       currentQuizWord = quizWords[quizIndex];
+
+      // 隱藏中文提示與解析面板
+      document.getElementById('quizChineseHint').classList.add('hidden');
+      document.getElementById('quizExplanationPanel').classList.add('hidden');
+      document.getElementById('quizHintBtn').innerHTML = `<i class="fa-solid fa-eye mr-1"></i> 顯示中文提示`;
 
       // Update progress & score badge
       document.getElementById('quizProgressBadge').innerText = `第 ${quizIndex + 1} / ${quizTotalQuestions} 題`;
@@ -1085,26 +1159,75 @@
       document.getElementById('quizProgressBar').style.width = `${pct}%`;
 
       // Update question text
-      document.getElementById('quizQuestionWord').innerText = currentQuizWord.word;
       document.getElementById('quizQuestionPOS').innerText = currentQuizWord.pos;
       document.getElementById('quizQuestionPhonetic').innerText = currentQuizWord.phonetic || '';
 
-      // Prepare 4 choices
-      const choices = [currentQuizWord.translation];
-      
-      // Find distractor options from other words in Db
+      // 判斷是否有例句
+      let questionHtml = '';
+      if (currentQuizWord.example && currentQuizWord.example.trim().length > 0) {
+        quizIsSentenceMode = true;
+        document.getElementById('quizQuestionType').innerText = "多益填空題";
+        
+        // 使用正則表達式將例句中的單字挖空
+        let stem = currentQuizWord.word.substring(0, Math.max(3, currentQuizWord.word.length - 2));
+        let regexStr = '\\b' + stem + '[a-zA-Z]*\\b';
+        let regex = new RegExp(regexStr, 'gi');
+        
+        let sentence = currentQuizWord.example;
+        let blanked = sentence.replace(regex, '_____');
+        
+        if (blanked === sentence) {
+          blanked = sentence.replace(new RegExp(currentQuizWord.word, 'gi'), '_____');
+        }
+        
+        if (blanked === sentence) {
+          quizIsSentenceMode = false;
+        } else {
+          questionHtml = blanked;
+        }
+      } else {
+        quizIsSentenceMode = false;
+      }
+
+      if (!quizIsSentenceMode) {
+        document.getElementById('quizQuestionType').innerText = "單字釋義題";
+        questionHtml = `請選出「<span class="text-brand-600 dark:text-brand-400 font-extrabold">${currentQuizWord.word}</span>」的正確意思：`;
+      }
+
+      document.getElementById('quizQuestionWord').innerHTML = questionHtml;
+
+      // 提示內容
+      document.getElementById('quizChineseHint').innerText = `中文提示：${currentQuizWord.translation}`;
+
+      // Prepare choices
+      const choices = [];
+      const correctVal = quizIsSentenceMode ? currentQuizWord.word : currentQuizWord.translation;
+      choices.push(correctVal);
+
       const otherWords = wordsDb.filter(w => w.id !== currentQuizWord.id);
-      // Shuffle options to pick 3 random distractors
+      
+      // Shuffle other words
       for (let i = otherWords.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [otherWords[i], otherWords[j]] = [otherWords[j], otherWords[i]];
       }
 
       for (let i = 0; i < Math.min(3, otherWords.length); i++) {
-        choices.push(otherWords[i].translation);
+        const wrongVal = quizIsSentenceMode ? otherWords[i].word : otherWords[i].translation;
+        if (!choices.includes(wrongVal)) {
+          choices.push(wrongVal);
+        }
+      }
+      
+      while (choices.length < 4 && otherWords.length >= choices.length) {
+        const w = otherWords[choices.length];
+        const val = quizIsSentenceMode ? w.word : w.translation;
+        if (!choices.includes(val)) {
+          choices.push(val);
+        }
       }
 
-      // Shuffle choices array
+      // Shuffle choices
       for (let i = choices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [choices[i], choices[j]] = [choices[j], choices[i]];
@@ -1126,17 +1249,30 @@
       });
     }
 
+    function toggleQuizHint() {
+      const hint = document.getElementById('quizChineseHint');
+      const btn = document.getElementById('quizHintBtn');
+      if (hint.classList.contains('hidden')) {
+        hint.classList.remove('hidden');
+        btn.innerHTML = `<i class="fa-solid fa-eye-slash mr-1"></i> 隱藏中文提示`;
+      } else {
+        hint.classList.add('hidden');
+        btn.innerHTML = `<i class="fa-solid fa-eye mr-1"></i> 顯示中文提示`;
+      }
+    }
+
     function playQuizAudio() {
-      if (currentQuizWord && currentQuizWord.audio) {
-        playAudio(currentQuizWord.audio);
+      if (currentQuizWord) {
+        playAudio(currentQuizWord.audio, currentQuizWord.word);
       }
     }
 
     function selectQuizAnswer(button, selectedText) {
-      if (quizSelectedAnswer) return; // Prevent multiple selection clicks
+      if (quizSelectedAnswer) return;
       quizSelectedAnswer = true;
 
-      const isCorrect = (selectedText === currentQuizWord.translation);
+      const correctVal = quizIsSentenceMode ? currentQuizWord.word : currentQuizWord.translation;
+      const isCorrect = (selectedText === correctVal);
       const grid = document.getElementById('quizOptionsGrid');
       const buttons = grid.getElementsByTagName('button');
 
@@ -1147,16 +1283,13 @@
         
         btn.disabled = true;
 
-        if (btnText === currentQuizWord.translation) {
-          // Highlight correct one in green
+        if (btnText === correctVal) {
           btn.className = "w-full py-4 px-6 bg-green-50 dark:bg-green-950/20 border border-green-500 rounded-xl text-left font-bold text-green-700 dark:text-green-400 transition flex justify-between items-center";
           statusSpan.innerHTML = `<i class="fa-solid fa-circle-check text-green-600"></i>`;
-        } else if (btn === button && !isCorrect) {
-          // Highlight user's incorrect choice in red
+        } else if (btnText === selectedText && !isCorrect) {
           btn.className = "w-full py-4 px-6 bg-red-50 dark:bg-red-950/20 border border-red-500 rounded-xl text-left font-bold text-red-700 dark:text-red-400 transition flex justify-between items-center";
           statusSpan.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-600"></i>`;
         } else {
-          // Fade other choices
           btn.className = "w-full py-4 px-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-left font-semibold text-slate-400 dark:text-slate-500 transition opacity-50 flex justify-between items-center";
         }
       }
@@ -1166,7 +1299,38 @@
         document.getElementById('quizScoreBadge').innerText = `目前得分: ${quizScore} 分`;
       }
 
-      // Transition to next question or show results in 1.5 seconds
+      // 顯示考題解析
+      document.getElementById('quizExplanationAnswer').innerText = currentQuizWord.word;
+      document.getElementById('quizExplanationPOS').innerText = currentQuizWord.pos;
+      document.getElementById('quizExplanationTranslation').innerText = currentQuizWord.translation;
+      
+      if (currentQuizWord.example) {
+        let stem = currentQuizWord.word.substring(0, Math.max(3, currentQuizWord.word.length - 2));
+        let regex = new RegExp('\\b' + stem + '[a-zA-Z]*\\b', 'gi');
+        let highlightedSentence = currentQuizWord.example.replace(regex, match => `<strong class="text-brand-600 dark:text-brand-400 underline font-extrabold">${match}</strong>`);
+        document.getElementById('quizExplanationSentence').innerHTML = `"${highlightedSentence}"`;
+        document.getElementById('quizExplanationSentence').parentElement.classList.remove('hidden');
+      } else {
+        document.getElementById('quizExplanationSentence').parentElement.classList.add('hidden');
+      }
+
+      if (currentQuizWord.notes) {
+        document.getElementById('quizExplanationNotes').innerText = currentQuizWord.notes;
+        document.getElementById('quizExplanationNotesBox').classList.remove('hidden');
+      } else {
+        document.getElementById('quizExplanationNotesBox').classList.add('hidden');
+      }
+
+      document.getElementById('quizExplanationPanel').classList.remove('hidden');
+
+      // 語音朗讀：優先播放整個英文例句
+      if (currentQuizWord.example) {
+        playAudio(null, currentQuizWord.example);
+      } else {
+        playAudio(currentQuizWord.audio, currentQuizWord.word);
+      }
+
+      // 延長等待時間至 4.5 秒，方便閱讀解析與聽完整句發音
       setTimeout(() => {
         quizIndex++;
         if (quizIndex < quizTotalQuestions) {
@@ -1174,7 +1338,7 @@
         } else {
           showQuizResults();
         }
-      }, 1500);
+      }, 4500);
     }
 
     function showQuizResults() {
