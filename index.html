@@ -214,31 +214,31 @@
               <!-- Chinese Translation -->
               <div class="md:col-span-2">
                 <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">繁體中文意思 (Chinese Translation)</label>
-                <input type="text" id="formTranslation" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white" placeholder="輸入中文意思">
+                <input type="text" id="formTranslation" class="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white" placeholder="輸入中文意思">
               </div>
             </div>
 
             <!-- English Definition -->
             <div>
               <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">英文釋義 (English Definition)</label>
-              <textarea id="formDefinition" rows="2" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white" placeholder="輸入英文解釋..."></textarea>
+              <textarea id="formDefinition" rows="2" class="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white" placeholder="輸入英文解釋..."></textarea>
             </div>
 
             <!-- Example Sentence -->
             <div>
               <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">例句 (Example Sentence)</label>
-              <textarea id="formExample" rows="2" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white" placeholder="輸入包含該單字的英文例句..."></textarea>
+              <textarea id="formExample" rows="2" class="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white" placeholder="輸入包含該單字的英文例句..."></textarea>
             </div>
 
             <!-- Notes & Tags -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">多益學習筆記 (Learning Notes)</label>
-                <input type="text" id="formNotes" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white" placeholder="補充說明（如：商務會計常見、搭配片語）">
+                <input type="text" id="formNotes" class="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white" placeholder="補充說明（如：商務會計常見、搭配片語）">
               </div>
               <div>
                 <label class="block text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400">多益情境分類 (TOEIC Category)</label>
-                <select id="formCategory" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white">
+                <select id="formCategory" class="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white">
                   <option value="General">General (一般常用)</option>
                   <option value="Business">Business (商務會議)</option>
                   <option value="Finance">Finance (金融財務)</option>
@@ -246,6 +246,14 @@
                   <option value="Travel">Travel & Tourism (商務旅行)</option>
                   <option value="Shopping">Shopping & Dining (購物餐飲)</option>
                 </select>
+              </div>
+            </div>
+
+            <!-- Collocations Suggestions -->
+            <div id="collocationsBox" class="hidden space-y-2 pt-1">
+              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400">推薦多益搭配片語 (點選一鍵加入筆記)</label>
+              <div id="collocationsList" class="flex flex-wrap gap-2">
+                <!-- Dynamically populated collocation buttons -->
               </div>
             </div>
 
@@ -942,11 +950,61 @@
       document.getElementById('formExample').value = currentSearchWordData.example;
       document.getElementById('formNotes').value = '';
       document.getElementById('formCategory').value = 'General';
+
+      // 獲取並顯示推薦的搭配片語
+      fetchCollocations(currentSearchWordData.word);
     }
 
     function playCurrentAudio() {
       if (currentAudioUrl || (currentSearchWordData && currentSearchWordData.word)) {
         playAudio(currentAudioUrl, currentSearchWordData?.word);
+      }
+    }
+
+    async function fetchCollocations(word) {
+      const box = document.getElementById('collocationsBox');
+      const list = document.getElementById('collocationsList');
+      box.classList.add('hidden');
+      list.innerHTML = '';
+
+      try {
+        const res = await fetch(`https://api.datamuse.com/words?lc=${encodeURIComponent(word)}&max=8`);
+        if (res.ok) {
+          const data = await res.json();
+          // 過濾掉單純的冠詞或太短無意義的單字，保留實質內容
+          const filterOut = ['a', 'the', 'an', 'and', 'or', 'of', 'to', 'in', 'at', 'on', 'is', 'are', 'was', 'were'];
+          const phrases = data
+            .map(item => item.word.toLowerCase())
+            .filter(w => !filterOut.includes(w) && w.length > 1)
+            .map(w => `${word} ${w}`); // 組合成片語
+
+          if (phrases.length > 0) {
+            // 只取前 5 個最熱門的
+            phrases.slice(0, 5).forEach(phrase => {
+              const btn = document.createElement('button');
+              btn.type = 'button'; // 避免觸發 form 提交
+              btn.onclick = () => addCollocationToNotes(phrase);
+              btn.className = "px-3 py-1.5 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 hover:border-brand-500 dark:hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400 rounded-lg text-xs font-semibold transition text-slate-800 dark:text-slate-200 flex items-center gap-1";
+              btn.innerHTML = `<i class="fa-solid fa-plus text-[10px]"></i> ${phrase}`;
+              list.appendChild(btn);
+            });
+            box.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        console.warn("Failed fetching collocations:", err);
+      }
+    }
+
+    function addCollocationToNotes(phrase) {
+      const notesInput = document.getElementById('formNotes');
+      let currentVal = notesInput.value.trim();
+      if (currentVal) {
+        if (!currentVal.includes(phrase)) {
+          notesInput.value = currentVal + ", " + phrase;
+        }
+      } else {
+        notesInput.value = phrase;
       }
     }
 
