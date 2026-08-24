@@ -914,14 +914,9 @@
       document.getElementById('resultWord').innerText = currentSearchWordData.word;
       document.getElementById('resultPhonetic').innerText = currentSearchWordData.phonetic || '/無音標/';
       
-      // Audio display toggling
-      if (currentSearchWordData.audio) {
-        document.getElementById('resultAudioBtn').classList.remove('opacity-30', 'cursor-not-allowed');
-        currentAudioUrl = currentSearchWordData.audio;
-      } else {
-        document.getElementById('resultAudioBtn').classList.add('opacity-30', 'cursor-not-allowed');
-        currentAudioUrl = null;
-      }
+      // 確保按鈕可用（一律可以使用 TTS 備援發音）
+      document.getElementById('resultAudioBtn').classList.remove('opacity-30', 'cursor-not-allowed');
+      currentAudioUrl = currentSearchWordData.audio || null;
 
       // Inputs values
       document.getElementById('formPOS').value = currentSearchWordData.pos;
