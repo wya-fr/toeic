@@ -181,15 +181,16 @@
         <div id="searchResult" class="hidden bg-slate-50 dark:bg-zinc-950/40 p-6 rounded-2xl border border-slate-200 dark:border-zinc-900 space-y-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <!-- Word title & Phonetic -->
-            <div>
+            <div onclick="playCurrentAudio()" class="cursor-pointer group flex-grow" title="點擊播放發音">
               <div class="flex items-center gap-3 flex-wrap">
-                <h3 id="resultWord" class="text-3xl font-extrabold text-slate-900 dark:text-white">word</h3>
-                <span id="resultPhonetic" class="text-lg font-mono text-brand-600 dark:text-brand-400 font-medium">/wɜːd/</span>
+                <h3 id="resultWord" class="text-3xl font-extrabold text-slate-900 dark:text-white group-hover:text-brand-500 transition-colors">word</h3>
+                <span id="resultPhonetic" class="text-lg font-mono text-brand-600 dark:text-brand-400 font-medium group-hover:text-brand-400 transition-colors">/wɜːd/</span>
+                <i class="fa-solid fa-volume-high text-sm text-slate-400 dark:text-zinc-500 group-hover:text-brand-500 transition-colors ml-1"></i>
               </div>
-              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">查自 Free Dictionary & MyMemory API</p>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">查自 Free Dictionary & MyMemory API (點選大字或音標亦可發音)</p>
             </div>
             <!-- Audio button -->
-            <button id="resultAudioBtn" onclick="playCurrentAudio()" class="w-12 h-12 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:border-brand-300 hover:text-brand-600 transition flex items-center justify-center text-slate-500" title="播放發音">
+            <button id="resultAudioBtn" onclick="playCurrentAudio()" class="w-12 h-12 bg-white dark:bg-zinc-900 rounded-full border border-slate-200 dark:border-zinc-800 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:border-brand-300 hover:text-brand-600 transition flex items-center justify-center text-slate-500" title="播放發音">
               <i class="fa-solid fa-volume-high text-lg"></i>
             </button>
           </div>
