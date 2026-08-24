@@ -853,27 +853,37 @@
 
       if (!dictionaryApiSuccess) {
         // 搜尋失敗，嘗試呼叫 Datamuse API 進行拼寫推敲
-        let hasSuggestions = false;
+        let exactWordExists = false;
+        let suggestions = [];
         try {
           const suggestRes = await fetch(`https://api.datamuse.com/words?sp=${encodeURIComponent(input)}&max=5`);
           if (suggestRes.ok) {
-            const suggestions = await suggestRes.json();
+            suggestions = await suggestRes.json();
             if (suggestions && suggestions.length > 0) {
-              hasSuggestions = true;
-              displaySuggestions(suggestions);
-              return; // 中止後續處理，轉由建議字引導使用者
+              // 檢查建議列表中，是否有單字與使用者輸入完全一致（不分大小寫）
+              exactWordExists = suggestions.some(item => item.word.toLowerCase() === input);
             }
           }
         } catch (err) {
           console.error("Failed fetching spell check suggestions:", err);
         }
 
-        if (!hasSuggestions) {
-          // 連建議字都沒有，顯示傳統的找不到提示
-          document.getElementById('searchLoading').classList.add('hidden');
-          document.getElementById('searchPlaceholder').classList.remove('hidden');
-          alert(`「${input}」查無此單字，且無法推敲相似拼寫，請檢查拼字後重試！`);
-          return;
+        if (exactWordExists) {
+          // 如果其實有這個字（只是免費字典沒收錄），我們不判定為打錯字，而是手動賦予默認值，繼續完成中文翻譯查詢
+          currentSearchWordData.definition = '(免費英英字典查無此單字釋義)';
+          currentSearchWordData.pos = 'noun';
+        } else {
+          // 真的沒有這個字，真的是打錯了，這時向使用者顯示可能正確的單字
+          if (suggestions && suggestions.length > 0) {
+            displaySuggestions(suggestions, input); // 傳入原輸入字以供 UI 提示
+            return;
+          } else {
+            // 連建議字都沒有，顯示找不到提示
+            document.getElementById('searchLoading').classList.add('hidden');
+            document.getElementById('searchPlaceholder').classList.remove('hidden');
+            alert(`「${input}」查無此單字，且無法推敲相似拼寫，請檢查拼字後重試！`);
+            return;
+          }
         }
       }
 
@@ -927,12 +937,17 @@
       }
     }
 
-    function displaySuggestions(suggestions) {
+    function displaySuggestions(suggestions, originalWord) {
       document.getElementById('searchLoading').classList.add('hidden');
       document.getElementById('searchPlaceholder').classList.add('hidden');
       document.getElementById('searchResult').classList.add('hidden');
       
       const box = document.getElementById('searchSuggestionsBox');
+      const headerSpan = box.querySelector('span');
+      if (headerSpan) {
+        headerSpan.innerText = `查無此單字「${originalWord}」。您是不是要找以下拼寫：`;
+      }
+      
       const list = document.getElementById('suggestionsList');
       list.innerHTML = '';
       
