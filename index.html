@@ -850,26 +850,48 @@
       }
 
       if (!dictionaryApiSuccess) {
-        // 搜尋失敗，嘗試呼叫 Datamuse API 進行拼寫推敲
+        // 搜尋失敗，嘗試呼叫 Datamuse API 進行拼寫推敲（帶入 md=d 取得英文釋義）
         let exactWordExists = false;
+        let matchedWordObj = null;
         let suggestions = [];
         try {
-          const suggestRes = await fetch(`https://api.datamuse.com/words?sp=${encodeURIComponent(input)}&max=5`);
+          const suggestRes = await fetch(`https://api.datamuse.com/words?sp=${encodeURIComponent(input)}&md=d&max=5`);
           if (suggestRes.ok) {
             suggestions = await suggestRes.json();
             if (suggestions && suggestions.length > 0) {
               // 檢查建議列表中，是否有單字與使用者輸入完全一致（不分大小寫）
-              exactWordExists = suggestions.some(item => item.word.toLowerCase() === input);
+              matchedWordObj = suggestions.find(item => item.word.toLowerCase() === input);
+              exactWordExists = !!matchedWordObj;
             }
           }
         } catch (err) {
           console.error("Failed fetching spell check suggestions:", err);
         }
 
-        if (exactWordExists) {
-          // 如果其實有這個字（只是免費字典沒收錄），我們不判定為打錯字，而是手動賦予默認值，繼續完成中文翻譯查詢
-          currentSearchWordData.definition = '(免費英英字典查無此單字釋義)';
-          currentSearchWordData.pos = 'noun';
+        if (exactWordExists && matchedWordObj) {
+          // 如果其實有這個字，我們利用 Datamuse 的定義作為備份資料
+          let finalDef = '(免費英英字典查無此單字釋義)';
+          let finalPOS = 'noun';
+          
+          if (matchedWordObj.defs && matchedWordObj.defs.length > 0) {
+            const rawDef = matchedWordObj.defs[0];
+            const parts = rawDef.split('\t');
+            if (parts.length > 1) {
+              const rawPOS = parts[0];
+              if (rawPOS === 'v') finalPOS = 'verb';
+              else if (rawPOS === 'n') finalPOS = 'noun';
+              else if (rawPOS === 'adj') finalPOS = 'adj';
+              else if (rawPOS === 'adv') finalPOS = 'adv';
+              else finalPOS = rawPOS;
+              
+              finalDef = parts[1].trim();
+            } else {
+              finalDef = rawDef.trim();
+            }
+          }
+          
+          currentSearchWordData.definition = finalDef;
+          currentSearchWordData.pos = finalPOS;
         } else {
           // 真的沒有這個字，真的是打錯了，這時向使用者顯示可能正確的單字
           if (suggestions && suggestions.length > 0) {
