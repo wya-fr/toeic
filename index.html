@@ -936,10 +936,10 @@
       filtered.forEach(w => {
         // Build card HTML
         const item = document.createElement('div');
-        item.className = "bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 p-4 rounded-xl flex flex-col md:flex-row justify-between gap-4 transition-transform hover:shadow-sm";
+        item.className = "bg-slate-50 dark:bg-zinc-950/40 border border-slate-200 dark:border-zinc-900 p-4 rounded-xl flex flex-col md:flex-row justify-between gap-4 transition-transform hover:shadow-sm";
         
         // Define color tag for category
-        let catColor = "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400";
+        let catColor = "bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-slate-400";
         if (w.category === 'Business') catColor = "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400";
         if (w.category === 'Finance') catColor = "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400";
         if (w.category === 'Travel') catColor = "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400";
@@ -951,7 +951,7 @@
             <!-- Title line -->
             <div class="flex items-center gap-2 flex-wrap">
               <span class="text-xl font-extrabold tracking-tight text-slate-950 dark:text-white">${w.word}</span>
-              <span class="text-xs bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold px-2 py-0.5 rounded font-mono uppercase">${w.pos}</span>
+              <span class="text-xs bg-slate-200 dark:bg-zinc-800 text-slate-500 dark:text-slate-400 font-bold px-2 py-0.5 rounded font-mono uppercase">${w.pos}</span>
               <span class="text-xs font-mono text-slate-400">${w.phonetic || ''}</span>
               <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${catColor}">${w.category}</span>
             </div>
@@ -971,10 +971,10 @@
 
           <!-- Buttons -->
           <div class="flex items-start md:items-center justify-end gap-2 shrink-0">
-            <button onclick="playAudio('${w.audio || ''}', '${w.word.replace(/'/g, "\\'")}')" class="p-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 hover:text-brand-500 transition" title="發音">
+            <button onclick="playAudio('${w.audio || ''}', '${w.word.replace(/'/g, "\\'")}')" class="p-2 bg-white dark:bg-zinc-900 hover:bg-slate-100 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 rounded-lg text-slate-500 hover:text-brand-500 transition" title="發音">
               <i class="fa-solid fa-volume-high"></i>
             </button>
-            <button onclick="deleteWord('${w.id}')" class="p-2 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/20 border border-slate-200 dark:border-slate-700 hover:border-red-300 rounded-lg text-slate-400 hover:text-red-500 transition" title="刪除單字">
+            <button onclick="deleteWord('${w.id}')" class="p-2 bg-white dark:bg-zinc-900 hover:bg-red-50 dark:hover:bg-red-950/20 border border-slate-200 dark:border-zinc-800 hover:border-red-300 rounded-lg text-slate-400 hover:text-red-500 transition" title="刪除單字">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -1237,7 +1237,7 @@
       choices.forEach(choice => {
         const btn = document.createElement('button');
         btn.onclick = () => selectQuizAnswer(btn, choice);
-        btn.className = "w-full py-4 px-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-left font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition flex justify-between items-center";
+        btn.className = "w-full py-4 px-6 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-left font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-zinc-800/50 hover:border-slate-300 dark:hover:border-zinc-700 transition flex justify-between items-center";
         btn.innerHTML = `
           <span>${choice}</span>
           <span class="choice-status"></span>
@@ -1287,7 +1287,7 @@
           btn.className = "w-full py-4 px-6 bg-red-50 dark:bg-red-950/20 border border-red-500 rounded-xl text-left font-bold text-red-700 dark:text-red-400 transition flex justify-between items-center";
           statusSpan.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-600"></i>`;
         } else {
-          btn.className = "w-full py-4 px-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-left font-semibold text-slate-400 dark:text-slate-500 transition opacity-50 flex justify-between items-center";
+          btn.className = "w-full py-4 px-6 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl text-left font-semibold text-slate-400 dark:text-slate-500 transition opacity-50 flex justify-between items-center";
         }
       }
 
