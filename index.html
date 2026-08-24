@@ -870,7 +870,7 @@
 
         if (exactWordExists && matchedWordObj) {
           // 如果其實有這個字，我們利用 Datamuse 的定義作為備份資料
-          let finalDef = '(免費英英字典查無此單字釋義)';
+          let finalDef = '';
           let finalPOS = 'noun';
           
           if (matchedWordObj.defs && matchedWordObj.defs.length > 0) {
