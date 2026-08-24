@@ -189,10 +189,7 @@
               </div>
               <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">查自 Free Dictionary & MyMemory API (點選大字或音標亦可發音)</p>
             </div>
-            <!-- Audio button -->
-            <button id="resultAudioBtn" onclick="playCurrentAudio()" class="w-12 h-12 bg-white dark:bg-zinc-900 rounded-full border border-slate-200 dark:border-zinc-800 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:border-brand-300 hover:text-brand-600 transition flex items-center justify-center text-slate-500" title="播放發音">
-              <i class="fa-solid fa-volume-high text-lg"></i>
-            </button>
+
           </div>
 
           <hr class="border-slate-200 dark:border-slate-700">
@@ -914,8 +911,6 @@
       document.getElementById('resultWord').innerText = currentSearchWordData.word;
       document.getElementById('resultPhonetic').innerText = currentSearchWordData.phonetic || '/無音標/';
       
-      // 確保按鈕可用（一律可以使用 TTS 備援發音）
-      document.getElementById('resultAudioBtn').classList.remove('opacity-30', 'cursor-not-allowed');
       currentAudioUrl = currentSearchWordData.audio || null;
 
       // Inputs values
